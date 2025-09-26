@@ -218,6 +218,8 @@ read_dir() {
         list[0]=empty
 
     ((list_total=${#list[@]}-1))
+	
+	list_digits="${#list_total}"
 
     # Save the original dir in a second list as a backup.
     cur_list=("${list[@]}")
@@ -229,6 +231,7 @@ print_line() {
     local file_ext=${file_name##*.}
     local format
     local suffix
+	local number
 
     # If the dir item doesn't exist, end here.
     if [[ -z ${list[$1]} ]]; then
@@ -299,13 +302,16 @@ print_line() {
         suffix+=${mark_post}
     }
 
+	((${FFFF_LINE_NUMBER:=0} == 1)) &&
+		number=$(printf "%${list_digits}s \n" "$1")
+
     # Escape the directory string.
     # Remove all non-printable characters.
     file_name=${file_name//[^[:print:]]/^[}
 
     printf '\r%b%s\e[m\r' \
         "${file_pre}${format}" \
-        "${file_name}${suffix}${file_post}"
+        "$number${file_name}${suffix}${file_post}"
 }
 
 draw_dir() {
