@@ -1142,4 +1142,6 @@ main() {
     }
 }
 
+[[ -f ~/.config/ffff/config.sh ]] &&
+	source ~/.config/ffff/config.sh
 main "$@"
