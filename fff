@@ -302,14 +302,20 @@ print_line() {
         suffix+=${mark_post}
     }
 
-	((${FFFF_LINE_NUMBER:=0} == 1)) &&
-		number=$(printf "%${list_digits}s \n" "$1")
+	((${FFFF_LINE_NUMBER:=0} == 1)) && {
+		if [[ ${FFFF_RELATIVE_NUMBERS:=0} == 1 && (($1 != $scroll)) ]]; then
+			number=$(printf "%${list_digits}s \n" "$(( ($1 - scroll < 0)
+				? -( $1 - scroll ) : ($1 - scroll) ))")
+		else
+			number=$(printf "%${list_digits}s \n" "$1")
+		fi
+	}
 
     # Escape the directory string.
     # Remove all non-printable characters.
     file_name=${file_name//[^[:print:]]/^[}
 
-    printf '\r%b%s\e[m\r' \
+    printf '\r%b%s\e[m\e[K\r' \
         "${file_pre}${format}" \
         "$number${file_name}${suffix}${file_post}"
 }
@@ -800,9 +806,13 @@ key() {
                 ((scroll++))
                 ((y < max_items)) && ((y++))
 
-                print_line "$((scroll-1))"
-                printf '\n'
-                print_line "$scroll"
+				if [[ $FFFF_RELATIVE_NUMBERS == 1 ]]; then
+					draw_dir
+				else
+					print_line "$((scroll-1))"
+					printf '\n'
+					print_line "$scroll"
+				fi
                 status_line
             }
         ;;
@@ -818,16 +828,19 @@ key() {
             ((scroll > 0)) && {
                 ((scroll--))
 
-                print_line "$((scroll+1))"
+				if [[ $FFFF_RELATIVE_NUMBERS == 1 ]]; then
+					draw_dir
+				else
+					print_line "$((scroll+1))"
 
-                if ((y < 2)); then
-                    printf '\e[L'
-                else
-                    printf '\e[A'
-                    ((y--))
-                fi
-
-                print_line "$scroll"
+					if ((y < 2)); then
+						printf '\e[L'
+					else
+						printf '\e[A'
+						((y--))
+					fi
+					print_line "$scroll"
+				fi
                 status_line
             }
         ;;
